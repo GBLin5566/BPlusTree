@@ -6,14 +6,24 @@
 template <class Key>
 class TableIndex {
     public:
-    TableIndex(unsigned int record_size, char *table_name);
-    int insert_record(Record<Key>);
-    int delete_by_key(Key key);
-    Record<Key> read_by_key(Key key);
-    std::vector< Record<Key> > read_by_key(Key key1, Key key2);
+    /* Constructers */
+    TableIndex(const unsigned int _record_size, const char * const _table_name);
+    //TableIndex(const unsigned int _record_size, const char * const _table_name, DataPagesHandler * const _dph);
+
+    /* Setter */
+    //void setDataPagesHandler(DataPagesHandler * const _dph) {}
+
+    int insert_record(const Record<Key>);
+    bool delete_by_key(const Key key);
+    Record<Key> read_by_key(const Key key);
+    std::vector< Record<Key> > read_by_key(const Key key1, const Key key2);
     void scan_table();
     int numLeafPages();
     int numIndexPages();
 
     private:
+    unsigned int record_size;
+    char *table_name;
+    //DataPagesHandler *dph;
+
 };
