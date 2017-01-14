@@ -3,6 +3,9 @@
 #include "KeyString.h"
 #include "Record.h"
 
+#ifndef TABLE_INDEX_H
+#define TABLE_INDEX_H
+
 template <class Key>
 class TableIndex {
     public:
@@ -11,7 +14,7 @@ class TableIndex {
     //TableIndex(const unsigned int _record_size, const char * const _table_name, DataPagesHandler * const _dph);
 
     /* Setter */
-    //void setDataPagesHandler(DataPagesHandler * const _dph) {}
+    //void setDataPagesHandler(DataPagesHandler * const _dph) {dph = _dph;}
 
     int insert_record(const Record<Key>);
     bool delete_by_key(const Key key);
@@ -23,7 +26,9 @@ class TableIndex {
 
     private:
     unsigned int record_size;
-    char *table_name;
+    std::string table_name;
     //DataPagesHandler *dph;
 
 };
+
+#endif
