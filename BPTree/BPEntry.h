@@ -5,8 +5,8 @@
 
 #pragma pack(push)
 #pragma pack(1)
-template<class Key>
-class BPEntry {
+template <class Key>
+struct BPEntry {
     Key key;
     ipg_pntr value;
 };
