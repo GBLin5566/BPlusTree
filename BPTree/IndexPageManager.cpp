@@ -19,7 +19,7 @@ ipg_pntr IndexPageManager::new_page() {
     } else if (firstAvailable < table.size()) {
         if (table[firstAvailable].isUsing) {
             perror("IndexPageManager: Head points to occupied\n");
-            return UINT_MAX;
+            return INDEX_PAGE_INVALID;
         } else {
             ipg_pntr ret = firstAvailable;
             firstAvailable = (ipg_pntr) table[firstAvailable].pointer;
@@ -30,7 +30,7 @@ ipg_pntr IndexPageManager::new_page() {
         }
     } else {
         perror("IndexPageManager: Head too large\n");
-        return UINT_MAX;
+        return INDEX_PAGE_INVALID;
     }
 }
 

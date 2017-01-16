@@ -1,5 +1,6 @@
 #include <vector>
 
+#define INDEX_PAGE_INVALID UINT_MAX
 #define INDEX_PAGE_POINTER_SIZE 4
 typedef unsigned int ipg_pntr;
 
