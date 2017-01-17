@@ -16,6 +16,8 @@ class TableIndex {
     /* Setter */
     //void setDataPagesHandler(DataPagesHandler * const _dph) {dph = _dph;}
 
+    bool isIntType() {return sizeof(Key)==sizeof(int);}
+
     int insert_record(const Record<Key>);
     bool delete_by_key(const Key key);
     Record<Key> read_by_key(const Key key);
@@ -23,6 +25,7 @@ class TableIndex {
     void scan_table();
     int numLeafPages();
     int numIndexPages();
+
 
     private:
     unsigned int record_size;
