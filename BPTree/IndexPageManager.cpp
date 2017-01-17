@@ -19,7 +19,7 @@ ipg_pntr IndexPageManager::new_page() {
     } else if (firstAvailable < table.size()) {
         if (table[firstAvailable].isUsing) {
             perror("IndexPageManager: Head points to occupied\n");
-            return UINT_MAX;
+            return INDEX_PAGE_INVALID;
         } else {
             ipg_pntr ret = firstAvailable;
             firstAvailable = (ipg_pntr) table[firstAvailable].pointer;
@@ -30,13 +30,17 @@ ipg_pntr IndexPageManager::new_page() {
         }
     } else {
         perror("IndexPageManager: Head too large\n");
-        return UINT_MAX;
+        return INDEX_PAGE_INVALID;
     }
 }
 
 page* IndexPageManager::get_page(ipg_pntr at) {
-    if (table[at].isUsing)  return table[at].pointer;
-    else                    return NULL;
+    if (table[at].isUsing) {
+        return table[at].pointer;
+    } else {
+        perror("IndexPageManager: Get unused page\n");
+        return NULL;
+    }
 }
 
 bool IndexPageManager::del_page(ipg_pntr at) {
@@ -47,6 +51,7 @@ bool IndexPageManager::del_page(ipg_pntr at) {
         firstAvailable = at;
         return true;
     } else {
+        perror("IndexPageManager: Delete unused page\n");
         return false;
     }
 }

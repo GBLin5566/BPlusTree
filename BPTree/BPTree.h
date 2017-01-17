@@ -1,7 +1,6 @@
 #include <unordered_map>
 
 #include "../TableIndex.h"
-#include "BPLeaf.h"
 #include "BPEntry.h"
 
 #ifndef BP_TREE_H
@@ -13,23 +12,33 @@ struct SplitInfo {
     ipg_pntr right_pg;
 };
 
+struct RemoveInfo {
+    bool needRedis;
+    ipg_pntr rid;
+    // rid rid;
+};
+
 template<class Key>
 class BPTree {
     public:
     BPTree();
     void insert(BPEntry<Key> entry);
+    BPEntry<Key> read_match(Key key);
+    std::vector< BPEntry<Key> > read_range(Key key1, Key key2);
+    ipg_pntr remove_by_key(Key key);
+
     unsigned int leafPageNum;
     unsigned int totalPageNum;
     unsigned int depth;
-    // BPNode<Key> *root;
-    // BPLeaf<Key> *first;
-    // BPLeaf<Key> *last;
+
     private:
     std::unordered_map<ipg_pntr, int> numEntries;
     IndexPageManager ipm;
     ipg_pntr rootPage;
     SplitInfo<Key> * insert_node(ipg_pntr node, BPEntry<Key> entry, unsigned int nowDepth);
     SplitInfo<Key> * insert_leaf(ipg_pntr leaf, BPEntry<Key> entry);
+    RemoveInfo remove_node(ipg_pntr node, Key key, unsigned int nowDepth);
+    RemoveInfo remove_leaf(ipg_pntr leaf, Key key);
 
     public:
     //  63<int>, 36<KeyString>
