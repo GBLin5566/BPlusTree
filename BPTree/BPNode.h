@@ -72,7 +72,14 @@ Key node_split_page (node_page<Key> *left, node_page<Key> *right, BPEntry<Key> e
     }
 }
 
-
+template <class Key>
+Key node_delete_position (node_page<Key> *node, int pos, int numEntries) {
+    Key ret = node_get_key(node, pos);
+    memcpy( &node->entries[pos],
+            &node->entries[pos+1],
+            (numEntries-pos-1)*sizeof(BPEntry<Key>*));
+    return ret;
+}
 
 template <class Key>
 Key node_redistribute (node_page<Key> *left, node_page<Key> *right, int l_numEntries, int r_numEntries, Key key) {
@@ -99,6 +106,14 @@ Key node_redistribute (node_page<Key> *left, node_page<Key> *right, int l_numEnt
         perror("BPNode: Redistribute by 0?\n");
     }
     return right->entries[0].key;
+}
+
+template <class Key>
+void node_merge_pages (node_page<Key> *left, node_page<Key> *right, int l_numEntries, int r_numEntries, Key key) {
+    left->entries[l_numEntries].key = key;
+    memcpy( &left->entries[l_numEntries].value,
+            &right->entries[-1].value,
+            r_numEntries*sizeof(BPEntry<Key>)+sizeof(ipg_pntr));
 }
 
 #endif

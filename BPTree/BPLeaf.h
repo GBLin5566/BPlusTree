@@ -84,7 +84,7 @@ Key leaf_split_page (leaf_page<Key> *left, leaf_page<Key> *right, int page_capac
 }
 
 template <class Key>
-unsigned int leaf_delete_by_key (leaf_page<Key> *leaf, Key key, int numEntries) {
+ipg_pntr leaf_delete_by_key (leaf_page<Key> *leaf, Key key, int numEntries) {
     int i = _leaf_find_position(leaf, key, numEntries);
     if (i == 0)     return INDEX_PAGE_INVALID;                       //  Less than all: No match
     if (leaf->entries[i-1].key < key)   return INDEX_PAGE_INVALID;   //  Less than i & larger than i-1: No match
@@ -116,6 +116,14 @@ Key leaf_redistribute (leaf_page<Key> *left, leaf_page<Key> *right, int l_numEnt
         perror("BPLeaf: Redistribute by 0?\n");
     }
     return right->entries[0].key;
+}
+
+template <class Key>
+void leaf_merge_pages (leaf_page<Key> *left, leaf_page<Key> *right, int l_numEntries, int r_numEntries) {
+    memcpy( &left->entries[l_numEntries],
+            &right->entries[0],
+            r_numEntries*sizeof(BPEntry<Key>));
+    left->next = right->next;
 }
 
 #endif

@@ -87,23 +87,30 @@ RemoveInfo BPTree<Key>::remove_node(ipg_pntr node, Key key, unsigned int nowDept
         ipg_pntr left, right;
         if (nowDepth == depth-1) {      //  And the child is a leaf
             if (child_pos != 0) {       //  Child has left sibling
+                left = node_get_pointer(n_page, child_pos-1);
+                right = child;
                 if ((numEntries[child]+numEntries[node_get_pointer(n_page, child_pos-1)])/2 >= page_capacity/2) {
-                    left = node_get_pointer(n_page, child_pos-1);
-                    right = child;
                     need_merge = false;
                 }
             }
             //  Haven't find redistribution peer
             if (need_merge && child_pos != numEntries[node]) {   //  Child has right sibling
+                left = child;
+                right = node_get_pointer(n_page, child_pos+1);
+                is_with_left = 0;
                 if ((numEntries[child]+numEntries[node_get_pointer(n_page, child_pos+1)])/2 >= page_capacity/2) {
-                    left = child;
-                    right = node_get_pointer(n_page, child_pos+1);
-                    is_with_left = 0;
                     need_merge = false;
                 }
             }
             if (need_merge) {                   //  Do merge
-                //  TODO
+                leaf_merge_pages((leaf_page<Key>*)ipm.get_page(left), (leaf_page<Key>*)ipm.get_page(right), numEntries[left], numEntries[right]);
+                numEntries[left] += numEntries[right];
+                ipm.del_page(right);
+                leafPageNum--;
+                totalPageNum--;
+                node_delete_position(n_page, child_pos-is_with_left, numEntries[node]);
+                numEntries[node]--;
+                result.needRedis = numEntries[node] < page_capacity/2;
             } else {                            //  Do redistribution
                 node_set_key(n_page, child_pos-is_with_left, leaf_redistribute( (leaf_page<Key>*)ipm.get_page(left),
                                                                                 (leaf_page<Key>*)ipm.get_page(right),
@@ -115,23 +122,30 @@ RemoveInfo BPTree<Key>::remove_node(ipg_pntr node, Key key, unsigned int nowDept
             }
         } else {                        //  The child is not leaf
             if (child_pos != 0) {       //  Child has left sibling
+                left = node_get_pointer(n_page, child_pos-1);
+                right = child;
                 if ((numEntries[child]+numEntries[node_get_pointer(n_page, child_pos-1)])/2 >= page_capacity/2) {
-                    left = node_get_pointer(n_page, child_pos-1);
-                    right = child;
                     need_merge = false;
                 }
             }
             //  Haven't find redistribution peer
             if (need_merge && child_pos != numEntries[node]) {   //  Child has right sibling
+                left = child;
+                right = node_get_pointer(n_page, child_pos+1);
+                is_with_left = 0;
                 if ((numEntries[child]+numEntries[node_get_pointer(n_page, child_pos+1)])/2 >= page_capacity/2) {
-                    left = child;
-                    right = node_get_pointer(n_page, child_pos+1);
-                    is_with_left = 0;
                     need_merge = false;
                 }
             }
             if (need_merge) {                   //  Do merge
-                //  TODO
+                node_merge_pages(   (node_page<Key>*)ipm.get_page(left), (node_page<Key>*)ipm.get_page(right),
+                                    numEntries[left], numEntries[right],
+                                    node_delete_position(n_page, child_pos-is_with_left, numEntries[node]));
+                numEntries[left] += numEntries[right] + 1;
+                ipm.del_page(right);
+                totalPageNum--;
+                numEntries[node]--;
+                result.needRedis = numEntries[node] < page_capacity/2;
             } else {                            //  Do redistribution
                 node_set_key(n_page, child_pos-is_with_left, node_redistribute( (node_page<Key>*)ipm.get_page(left),
                                                                                 (node_page<Key>*)ipm.get_page(right),
@@ -246,9 +260,17 @@ int main(int argc, char **argv) {
     int num = 0;
     int key1 = 0;
     int key2 = 0;
+    int del1 = 0;
+    int del2 = 0;
     if (argc > 1) {
         if (argc > 2) {
             if (argc > 3) {
+                if (argc > 4) {
+                    if (argc > 5) {
+                        del2 = strtol(argv[5], NULL, 10);
+                    }
+                    del1 = strtol(argv[4], NULL, 10);
+                }
                 key2 = strtol(argv[3], NULL, 10);
             }
             key1 = strtol(argv[2], NULL, 10);
@@ -265,6 +287,12 @@ int main(int argc, char **argv) {
     for (int i=0; i<vector.size(); i++) {
         printf("(%d, %u)\n", vector[i].key, vector[i].value);
     }
-    tree.remove_by_key(1);
+    tree.remove_by_key(del1);
+    tree.remove_by_key(del2);
+    printf("%d, %d, %d\n", tree.depth, tree.leafPageNum, tree.totalPageNum);
+    vector = tree.read_range(key1, key2);
+    for (int i=0; i<vector.size(); i++) {
+        printf("(%d, %u)\n", vector[i].key, vector[i].value);
+    }
     return 0;
 }

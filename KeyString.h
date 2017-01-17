@@ -5,7 +5,7 @@
 #define KEY_STRING_LEN 10
 class KeyString {
     public:
-    char str[KEY_STRING_LEN];
+    unsigned char str[KEY_STRING_LEN];
     KeyString(std::string s);
     bool operator<(const KeyString right);
     bool operator>=(const KeyString right);

@@ -1,8 +1,9 @@
 #include <vector>
+#include <cstdint>
 
-#define INDEX_PAGE_INVALID UINT_MAX
-#define INDEX_PAGE_POINTER_SIZE 4
-typedef unsigned int ipg_pntr;
+typedef uint32_t ipg_pntr;
+#define INDEX_PAGE_INVALID UINT32_MAX
+#define INDEX_PAGE_POINTER_SIZE sizeof(ipg_pntr)
 
 #ifndef INDEX_PAGE_T
 #define INDEX_PAGE_T

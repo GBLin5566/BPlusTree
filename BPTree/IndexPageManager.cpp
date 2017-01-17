@@ -35,8 +35,12 @@ ipg_pntr IndexPageManager::new_page() {
 }
 
 page* IndexPageManager::get_page(ipg_pntr at) {
-    if (table[at].isUsing)  return table[at].pointer;
-    else                    return NULL;
+    if (table[at].isUsing) {
+        return table[at].pointer;
+    } else {
+        perror("IndexPageManager: Get unused page\n");
+        return NULL;
+    }
 }
 
 bool IndexPageManager::del_page(ipg_pntr at) {
@@ -47,6 +51,7 @@ bool IndexPageManager::del_page(ipg_pntr at) {
         firstAvailable = at;
         return true;
     } else {
+        perror("IndexPageManager: Delete unused page\n");
         return false;
     }
 }

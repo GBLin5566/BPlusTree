@@ -14,7 +14,7 @@ struct SplitInfo {
 
 struct RemoveInfo {
     bool needRedis;
-    unsigned int rid;
+    ipg_pntr rid;
     // rid rid;
 };
 
@@ -25,7 +25,7 @@ class BPTree {
     void insert(BPEntry<Key> entry);
     BPEntry<Key> read_match(Key key);
     std::vector< BPEntry<Key> > read_range(Key key1, Key key2);
-    unsigned int remove_by_key(Key key);
+    ipg_pntr remove_by_key(Key key);
 
     unsigned int leafPageNum;
     unsigned int totalPageNum;
@@ -42,8 +42,8 @@ class BPTree {
 
     public:
     //  63<int>, 36<KeyString>
-    // const int page_capacity = 4;
-    const int page_capacity = (INDEX_PAGE_SIZE - 2*INDEX_PAGE_POINTER_SIZE)/sizeof(BPEntry<Key>);
+    const int page_capacity = 4;
+    // const int page_capacity = (INDEX_PAGE_SIZE - 2*INDEX_PAGE_POINTER_SIZE)/sizeof(BPEntry<Key>);
 };
 
 #endif
