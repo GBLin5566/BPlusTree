@@ -12,9 +12,7 @@ typedef struct {char data[DATA_PAGE_SIZE-sizeof(uint16_t)*2];uint16_t free_space
 #ifndef DATA_PAGE_MANAGER
 #define DATA_PAGE_MANAGER
 // TODO
-// delete(rid)
 // read(pid)
-// numPages()
 //
 // cheat sheet
 // class Record {
@@ -27,19 +25,20 @@ template <class Key>
 class DataPageManager {
     public:
     DataPageManager();
-    DataPageManager(int);
+    DataPageManager(int record_len);
     // Public API
-    void print(const int&);
-    rid insert(Record<Key>);
-    bool del(const rid&);
+    void print(const int& pid);
+    void printAllPage();
+    rid insert(Record<Key> record);
+    bool del(const rid& record_id);
+    char* query(const rid& record_id);
     int getNumPages();
     //
-    void setRecordLen(int);
+    void setRecordLen(int record_len);
     int getRecordLen();
     private:
     // In-mem. version.
     std::vector<data_page> page_table;
-    std::map<Key, rid> map_for_index;
     bool enoughFreeSpace();
     int record_len;
 };

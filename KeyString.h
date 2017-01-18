@@ -1,4 +1,5 @@
 #include <string>
+#include <iostream>
 
 #ifndef KEY_STRING_H
 #define KEY_STRING_H
@@ -10,6 +11,7 @@ class KeyString {
     bool operator<(const KeyString right);
     bool operator>=(const KeyString right);
     bool operator==(const KeyString right);
+    friend std::ostream& operator<<(std::ostream&, const KeyString&);
 };
 KeyString::KeyString(std::string s) {
     int len = KEY_STRING_LEN;
@@ -35,5 +37,9 @@ inline bool KeyString::operator==(const KeyString right) {
         if (this->str[i] != right.str[i]) return false;
     }
     return true;
+}
+std::ostream& operator<<(std::ostream& os, const KeyString& ks) {
+    os << ks.str ;
+    return os;
 }
 #endif

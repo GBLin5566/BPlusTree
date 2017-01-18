@@ -2,9 +2,14 @@
 #include <iostream>
 #include <assert.h> 
 #include "DataPageManager.h"
+#include "KeyString.h"
 
 #ifndef DPM_DETAIL
 //#define DPM_DETAIL
+#endif
+
+#ifndef DPM_TEST
+#define DPM_TEST
 #endif
 
 typedef struct {uint16_t offset; uint16_t reclen;} slot;
@@ -53,6 +58,27 @@ bool DataPageManager<Key>::del(const rid& id) {
 };
 
 template<class Key>
+char* DataPageManager<Key>::query(const rid& id) {
+    const uint16_t page_id = id.page_id;
+    const uint16_t slot_number = id.slot_number;
+
+    data_page* target_page = &this->page_table[page_id];
+    uint16_t offset_for_slot = DATA_PAGE_SIZE - 1 - 2 * sizeof(uint16_t);
+    std::cout << "[DBM] Querying page id " << page_id << ", slot_number " << slot_number << std::endl;
+    slot target_slot;
+    memcpy(&target_slot.offset, target_page->data + (DATA_PAGE_SIZE - 1 - 2*(sizeof(uint16_t))) - (slot_number + 1) * (sizeof(id.page_id) + sizeof(id.slot_number)), sizeof(target_slot.offset));
+    memcpy(&target_slot.reclen, target_page->data + (DATA_PAGE_SIZE - 1 - 2*(sizeof(uint16_t))) - (slot_number + 1) * (sizeof(id.page_id) + sizeof(id.slot_number)) + sizeof(target_slot.offset), sizeof(target_slot.reclen));
+    if (target_slot.offset == UINT16_MAX) {
+        std::cout << "[DBM] *ERROR* Querying a deleted rid.\n";
+        return NULL;
+    }
+    char* return_rest = new char [target_slot.reclen];
+    memcpy(return_rest, target_page->data + target_slot.offset, target_slot.reclen);
+    std::cout << "[DBM] Query result, rest = " << return_rest << std::endl;
+    return return_rest;
+}
+
+template<class Key>
 bool DataPageManager<Key>::enoughFreeSpace() {
     if (this->getNumPages() == 0)
         return false;
@@ -60,15 +86,6 @@ bool DataPageManager<Key>::enoughFreeSpace() {
 
     slot slot_instance;
     int slot_size = sizeof(slot_instance.offset) + sizeof(slot_instance.reclen);
-    /* TODO
-    // Check if there's a deleted slot in last_page
-    uint16_t offset_for_slot = DATA_PAGE_SIZE - 1 - 2 * sizeof(uint16_t);
-    for (uint16_t i = 0 ; i < last_page->number_of_slot ; i ++) {
-        uint16_t offset;
-        memcpy(&offset, last_page->data + offset_for_slot - i * slot_size, sizeof(offset));
-        if (offset == UINT16_MAX) // Because all record has the same size, any new record can fit in a deleted slot.
-            return true;
-    }*/
     // All Page = DATA_PAGE_SIZE
     // free_space_pointer & number_of_slot = sizeof(uint16_t) * 2
     // Remain size (all - used) = minus last_page.free_space_pointer
@@ -104,16 +121,28 @@ void DataPageManager<Key>::print(const int & pid) {
         char* rest = new char [this->getRecordLen()];
         memcpy(rest, target_page->data + offset, this->getRecordLen());
         std::cout << "[DPM] Pid " << pid << " Slot " << i << " , rest = " << rest << std::endl;
+        delete rest;
     }
 }
 
 template<class Key>
+void DataPageManager<Key>::printAllPage() {
+    for (int i = 0 ; i < this->getNumPages() ; i ++)
+        this->print(i);
+}
+
+template<class Key>
 rid DataPageManager<Key>::insert(Record<Key> r) {
-    assert(r.getSize() == this->getRecordLen());
+//    assert(r.getSize() == this->getRecordLen());
+    std::string t(r.getRest());
+    assert(t.length() < this->getRecordLen());
     try {
         std::cout << "[DPM] Insert a record, size(" << r.getSize() << "), key(" << r.getKey() << "), rest(" << r.getRest() << ").\n" ; 
         // Have enough space
         if (this->enoughFreeSpace()) {
+#ifdef DPM_DETAIL
+            std::cout << "[DPM_DETAIL] Enough space in page " << this->getNumPages() - 1 << std::endl;
+#endif
             data_page* last_page = &this->page_table[this->getNumPages()-1];
             // Insert the record
 #ifdef DPM_DETAIL
@@ -139,12 +168,10 @@ rid DataPageManager<Key>::insert(Record<Key> r) {
 #endif
             last_page->number_of_slot += 1;
             // New RID
-            rid* new_rid = new rid;
-            new_rid->slot_number = last_page->number_of_slot - 1;
-            new_rid->page_id = this->getNumPages() - 1;
+            rid new_rid = {.page_id = this->getNumPages() - 1, .slot_number = last_page->number_of_slot - 1};
             // Set a hash
 //            this->map_for_index[r.getKey()] = *new_rid;
-            return *new_rid;
+            return new_rid;
         } 
         else {
 #ifdef DPM_DETAIL
@@ -179,12 +206,10 @@ rid DataPageManager<Key>::insert(Record<Key> r) {
             // Push the new_page
             this->page_table.push_back(*new_page);
             // New RID
-            rid* new_rid = new rid;
-            new_rid->slot_number = 0;
-            new_rid->page_id = this->getNumPages() - 1;
+            rid new_rid = {.page_id = this->getNumPages() - 1, .slot_number = 0};
             // Set a hash key -> rid
 //            this->map_for_index[r.getKey()] = *new_rid;
-            return *new_rid;
+            return new_rid;
         }
     }
     catch (...) {
@@ -195,6 +220,10 @@ rid DataPageManager<Key>::insert(Record<Key> r) {
     }
 };
 
+template class DataPageManager<int>;
+template class DataPageManager<KeyString>;
+
+#ifdef DPM_TEST
 // Testing
 int main() {
     Record<int> r1(90, 10, "Kappa10");
@@ -214,9 +243,11 @@ int main() {
     rid insert_r6 = test_manager.insert(r6);
     rid insert_r7 = test_manager.insert(r7);
     rid insert_r8 = test_manager.insert(r8);
+    char* rest1 = test_manager.query(insert_r6);
+    char* rest2 = test_manager.query(insert_r5);
     test_manager.del(insert_r5);
-    for (int i = 0 ; i < test_manager.getNumPages() ; i ++)
-        test_manager.print(i);
+    test_manager.printAllPage();
+    char* rest3 = test_manager.query(insert_r5);
     /*
     char* tmp = "...";
     char buffer[1000];
@@ -228,3 +259,4 @@ int main() {
     */
     return 0 ;
 }
+#endif
