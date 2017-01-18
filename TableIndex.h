@@ -1,7 +1,6 @@
 #include <vector>
-#include <string>
-#include "KeyString.h"
 #include "Record.h"
+#include "DataPageManager.h"
 
 #ifndef TABLE_INDEX_H
 #define TABLE_INDEX_H
@@ -11,10 +10,7 @@ class TableIndex {
     public:
     /* Constructers */
     TableIndex(const unsigned int _record_size, const char * const _table_name);
-    //TableIndex(const unsigned int _record_size, const char * const _table_name, DataPagesHandler * const _dph);
-
-    /* Setter */
-    //void setDataPagesHandler(DataPagesHandler * const _dph) {dph = _dph;}
+    //TableIndex(const unsigned int _record_size, const char * const _table_name, DataPageManager * const _dpm);
 
     bool isIntType() {return sizeof(Key)==sizeof(int);}
 
@@ -26,11 +22,10 @@ class TableIndex {
     int numLeafPages();
     int numIndexPages();
 
-
     private:
     unsigned int record_size;
     std::string table_name;
-    //DataPagesHandler *dph;
+    DataPageManager<Key> *dpm;
 
 };
 
