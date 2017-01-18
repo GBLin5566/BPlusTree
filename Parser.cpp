@@ -115,6 +115,7 @@ int main(){
 		if (string_n%2!=0)
 			continue;
 
+		//Parse the input command, erase comma and semicolom above
 		vector<string> tokens;
 		int last_s = 0;
 		for (int i=0; i<str.size(); i++){
@@ -137,36 +138,46 @@ int main(){
 			}
 		}
 
+		//Declare map for storing tables
 		unordered_map <string, TableIndex<int>*>  int_tables;
 		unordered_map <string, TableIndex<KeyString>*>  str_tables;
 		
-		if (tokens[0]=="R"){
+		//Classify into different commands
+		if (tokens[0]=="R"){ //Build table
 			if (r_err_handler(tokens.size())) //size error
 				continue;
-			if (tokens[2]=="Integer"){ //Command execution here
+			if (tokens[2]=="Integer"){ //Command execution for Integer
 				TableIndex<int>* t_i = new TableIndex<int>((unsigned int)stoi(tokens[3]), (tokens[1]).c_str());
-				int_tables.insert(int_tables[tokens[1]] = t_i);
+				int_tables[tokens[1]] = t_i;
 			}
-			else if (tokens[2]=="String"){
+			else if (tokens[2]=="String"){ //Command execution for String
 				TableIndex<KeyString>* t_s = new TableIndex<KeyString>((unsigned int)stoi(tokens[3]), (tokens[1]).c_str());
-				str_tables.insert(str_tables[tokens[1]] = t_s);
+				str_tables[tokens[1]] = t_s;
 			}
 			else 
 				continue;
 		}
-		else if (tokens[0]=="I"){
+		else if (tokens[0]=="I"){ //Insert record to chosen table
 			if (i_err_handler(tokens.size(), record_n, delimiter)) //size error
 				continue;
+			if (int_tables.find(tokens[1]) != int_tables.end()) { //Command execution for Integer
+				int temp = int_tables.find(tokens[1])->second->insert_record(Record<int>(stoi(tokens[2]), tokens[3])); //
+			}
+			else if (str_tables.find(tokens[1]) != str_tables.end()){ //Command execution for String
+				int temp = str_tables.find(tokens[1])->second->insert_record(Record<KeyString>(tokens[2], tokens[3])); //10 char key?
+			}
+			else{
 
+			}
 		}
-		else if (tokens[0]=="D"){
+		else if (tokens[0]=="D"){ //Delete record from chosen table
 			if (d_err_handler(tokens.size())) //size error
 				continue;
-			if (int_tables.find(tokens[1]) != int_tables.end()) {
+			if (int_tables.find(tokens[1]) != int_tables.end()) { //Command execution for Integer
 				if (int_tables.find(tokens[1])->second->delete_by_key(stoi(tokens[2])))
 					continue;
 			}
-			else if (str_tables.find(tokens[1]) != str_tables.end()){
+			else if (str_tables.find(tokens[1]) != str_tables.end()){ //Command execution for String
 				if (str_tables.find(tokens[1])->second->delete_by_key(tokens[2]))
 					continue;
 			}
@@ -174,33 +185,63 @@ int main(){
 
 			}
 		}
-		else if (tokens[0]=="Scan"){
+		else if (tokens[0]=="Scan"){ //Print # of leaf pages, # of total index pages
 			if (s_err_handler(tokens.size())) //size error
 				continue;
-			if (int_tables.find(tokens[1]) != int_tables.end()) {
+			if (int_tables.find(tokens[1]) != int_tables.end()) { //Command execution for Integer
 				int_tables.find(tokens[1])->second->scan_table();
 			}
-			else if (str_tables.find(tokens[1]) != str_tables.end()){
+			else if (str_tables.find(tokens[1]) != str_tables.end()){ //Command execution for String
 				str_tables.find(tokens[1])->second->scan_table();
 			}
 			else{
 
 			}
 		}
-		else if (tokens[0]=="q"){
+		else if (tokens[0]=="q"){ //Single value quert & range query
 			if (q_err_handler(tokens.size())) //size error
 				continue;
-			if (tokens.size()==3){
-
+			if (tokens.size()==3){ //Single value
+				if (string_n==0){ //Command execution for Integer
+					if (int_tables.find(tokens[1]) != int_tables.end()) { 
+						Record<int> query = int_tables.find(tokens[1])->second->read_by_key(tokens[2]);
+					}
+				}
+				else{ //Command execution for String
+					if (str_tables.find(tokens[1]) != str_tables.end()){ 
+						Record<KeyString> query = str_tables.find(tokens[1])->second->read_by_key(tokens[2]);
+					}
+				}
 			}
-			else if (tokens.size()==4){
-
+			else if (tokens.size()==4){ //Range
+				if (tokens[2]>tokens[3]) //Check type & comparison
+					continue;
+				if (string_n==0){ //Command execution for Integer
+					if (int_tables.find(tokens[1]) != int_tables.end()) {
+						vector<Record<int>> r_query = int_tables.find(tokens[1])->second->read_by_key(tokens[2], tokens[3]);
+					}
+				}
+				else{ //Command execution for String
+					if (str_tables.find(tokens[1]) != str_tables.end()){
+						vector<Record<KeyString>> r_query = str_tables.find(tokens[1])->second->read_by_key(tokens[2], tokens[3]);
+					}
+				}
 			}
 		}
 		else if (tokens[0]=="c"){
 			if (c_err_handler(tokens.size())) //size error
 				continue;
+			if (int_tables.find(tokens[1]) != int_tables.end()) { //Command execution for String
+				/*cout<<int_tables.find(tokens[1])->second->numIndexPages()<<" index pages, and "
+					<<int_tables.find(tokens[1])->second->numLeafPages()<<" slotted data pages."<<endl;*/
+			}
+			else if (str_tables.find(tokens[1]) != str_tables.end()){ //Command execution for String
+				/*cout<<str_tables.find(tokens[1])->second->numIndexPages()<<" index pages, and "
+					<<str_tables.find(tokens[1])->second->numLeafPages()<<" slotted data pages."<<endl;*/
+			}
+			else{
 
+			}
 		}
 		else if (tokens[0]=="p"){
 			if (p_err_handler(tokens.size())) //size error
