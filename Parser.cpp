@@ -144,13 +144,12 @@ int main(){
 			if (r_err_handler(tokens.size())) //size error
 				continue;
 			if (tokens[2]=="Integer"){ //Command execution here
-				//convert = stoi(tokens[3]);
-				TableIndex<int> t((unsigned int)stoi(tokens[3]), (tokens[1]).c_str());
-				int_tables.insert(make_pair<string, TableIndex<int>*>(tokens[1], &t));
+				TableIndex<int>* t_i = new TableIndex<int>((unsigned int)stoi(tokens[3]), (tokens[1]).c_str());
+				int_tables.insert(int_tables[tokens[1]] = t_i);
 			}
 			else if (tokens[2]=="String"){
-				TableIndex<KeyString> t((unsigned int)stoi(tokens[3]), (tokens[1]).c_str());
-				str_tables.insert(make_pair<string, TableIndex<KeyString>*>(tokens[1], &t));
+				TableIndex<KeyString>* t_s = new TableIndex<KeyString>((unsigned int)stoi(tokens[3]), (tokens[1]).c_str());
+				str_tables.insert(str_tables[tokens[1]] = t_s);
 			}
 			else 
 				continue;
