@@ -1,9 +1,10 @@
 #include <iostream>
 #include <string>
-#include <sstream>
 #include <vector>
 #include <algorithm>
 #include <iterator>
+#include "TableIndex.h"
+#include <unordered_map>
 
 using namespace std;
 
@@ -98,7 +99,6 @@ int main(){
 		string str;
 		getline(cin, str);
 
-		//str.erase(remove(str.begin(), str.end(), ','), str.end());
 		vector<int> delimiter;
 		for (int i=0; i<str.size(); i++)
 			if (str[i] == ',')
@@ -111,19 +111,16 @@ int main(){
 		size_t record_n = count(str.begin(), str.end(), ';'); //count record
 		//replace( str.begin(), str.end(), ';', ' '); 
 		str.erase(remove(str.begin(), str.end(), ';'), str.end());//eliminate ;
-		cout<<str<<endl;
+		size_t string_n = count(str.begin(), str.end(), '"');
+		if (string_n%2!=0)
+			continue;
+
 		vector<string> tokens;
 		int last_s = 0;
-		//vector<int> space;
-		//vector<int> quote;
-		//space.push_back(0);
 		for (int i=0; i<str.size(); i++){
 			if (str[i] == ' '){
 				tokens.push_back(str.substr(last_s, i-last_s));
 				last_s = i+1;
-				//space.push_back(i);
-				/*while (str[i] == ' ')
-					i++;*/
 			}
 			if (i==str.size()-1){
 				tokens.push_back(str.substr(last_s, i-last_s+1));
@@ -132,37 +129,27 @@ int main(){
 			if (str[i] == '"'){
 				i++;
 				last_s = i;
-				//quote.push_back(i);
 				while (str[i]!='"'){
 					i++;
 				}
-				//quote.push_back(i);
 				tokens.push_back(str.substr(last_s, i-last_s));
 				i++;
-				/*while (str[i] == ' ')
-					i++;
-				i--;*/
 			}
-			/*else
-				space.push_back(i);*/
 		}
 
-
-		for (vector<string>::const_iterator i = tokens.begin(); i != tokens.end(); ++i)
-			cout << *i <<' ';
-
-		/*istringstream iss(str);
-		copy(istream_iterator<string>(iss),
-			 istream_iterator<string>(),
-			 back_inserter(tokens));*/
-
-		int convert;
+		unordered_map <string, TableIndex<int>*>  int_tables;
+		unordered_map <string, TableIndex<KeyString>*>  str_tables;
 		
 		if (tokens[0]=="R"){
 			if (r_err_handler(tokens.size())) //size error
 				continue;
-			if (tokens[2]=="Integer"||tokens[2]=="String"){ //Command execution here
-				//convert = stoi(tokens[3]);
+			if (tokens[2]=="Integer"){ //Command execution here
+				TableIndex<int>* t_i = new TableIndex<int>((unsigned int)stoi(tokens[3]), (tokens[1]).c_str());
+				int_tables.insert(int_tables[tokens[1]] = t_i);
+			}
+			else if (tokens[2]=="String"){
+				TableIndex<KeyString>* t_s = new TableIndex<KeyString>((unsigned int)stoi(tokens[3]), (tokens[1]).c_str());
+				str_tables.insert(str_tables[tokens[1]] = t_s);
 			}
 			else 
 				continue;
@@ -170,32 +157,60 @@ int main(){
 		else if (tokens[0]=="I"){
 			if (i_err_handler(tokens.size(), record_n, delimiter)) //size error
 				continue;
+
 		}
 		else if (tokens[0]=="D"){
 			if (d_err_handler(tokens.size())) //size error
 				continue;
+			if (int_tables.find(tokens[1]) != int_tables.end()) {
+				if (int_tables.find(tokens[1])->second->delete_by_key(stoi(tokens[2])))
+					continue;
+			}
+			else if (str_tables.find(tokens[1]) != str_tables.end()){
+				if (str_tables.find(tokens[1])->second->delete_by_key(tokens[2]))
+					continue;
+			}
+			else{
+
+			}
 		}
 		else if (tokens[0]=="Scan"){
 			if (s_err_handler(tokens.size())) //size error
 				continue;
+			if (int_tables.find(tokens[1]) != int_tables.end()) {
+				int_tables.find(tokens[1])->second->scan_table();
+			}
+			else if (str_tables.find(tokens[1]) != str_tables.end()){
+				str_tables.find(tokens[1])->second->scan_table();
+			}
+			else{
+
+			}
 		}
 		else if (tokens[0]=="q"){
 			if (q_err_handler(tokens.size())) //size error
 				continue;
+			if (tokens.size()==3){
+
+			}
+			else if (tokens.size()==4){
+
+			}
 		}
 		else if (tokens[0]=="c"){
 			if (c_err_handler(tokens.size())) //size error
 				continue;
+
 		}
 		else if (tokens[0]=="p"){
 			if (p_err_handler(tokens.size())) //size error
 				continue;
+
 		}
 		else
 			cout<<"Sorry! We do not support this kind of command!"<<endl;
 		cout<<endl<<"STFU!Motherfucker!";
-		/*for (vector<string>::const_iterator i = tokens.begin(); i != tokens.end(); ++i)
-			cout << *i << ' ';*/
+		
 	}
 	return 0;
 }
