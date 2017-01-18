@@ -12,8 +12,6 @@ typedef struct {char data[DATA_PAGE_SIZE-sizeof(uint16_t)*2];uint16_t free_space
 #ifndef DATA_PAGE_MANAGER
 #define DATA_PAGE_MANAGER
 // TODO
-// print(pid)
-// insert(Record)
 // delete(rid)
 // read(pid)
 // numPages()
@@ -31,12 +29,12 @@ class DataPageManager {
     DataPageManager();
     DataPageManager(int);
     // Public API
-    void print(const int& pid);
-    rid insert(Record<Key> r);
-    bool del(rid id);
+    void print(const int&);
+    rid insert(Record<Key>);
+    bool del(const rid&);
     int getNumPages();
     //
-    void setRecordLen(int len);
+    void setRecordLen(int);
     int getRecordLen();
     private:
     // In-mem. version.
