@@ -6,6 +6,7 @@
 #include "BPEntry.h"
 #include "BPNode.h"
 #include "BPLeaf.h"
+#include "../KeyString.h"
 
 /******************  PRIVATE ZONE START
  *
@@ -26,8 +27,8 @@ SplitInfo<Key> * BPTree<Key>::insert_node(ipg_pntr node, BPEntry<Key> entry, uns
         if (numEntries[node] == page_capacity) {    //  Need split
             ret = new SplitInfo<Key>;
             ret->right_pg = ipm.new_page();
-            ret->divider = node_split_page(n_page, (node_page<Key>*)ipm.get_page(ret->right_pg), *((BPEntry<Key>*)result), page_capacity);
             totalPageNum++;
+            ret->divider = node_split_page(n_page, (node_page<Key>*)ipm.get_page(ret->right_pg), *((BPEntry<Key>*)result), page_capacity);
             numEntries[node] = page_capacity/2;
             numEntries[ret->right_pg] = page_capacity - page_capacity/2;
         } else {
@@ -46,6 +47,8 @@ SplitInfo<Key> * BPTree<Key>::insert_leaf(ipg_pntr leaf, BPEntry<Key> entry) {
     if (numEntries[leaf] == page_capacity) {        //  Need split
         SplitInfo<Key> *ret = new SplitInfo<Key>;
         ret->right_pg = ipm.new_page();
+        leafPageNum++;
+        totalPageNum++;
         
         leaf_page<Key> *l_page = (leaf_page<Key>*)ipm.get_page(leaf);
         leaf_page<Key> *r_page = (leaf_page<Key>*)ipm.get_page(ret->right_pg);
@@ -53,10 +56,10 @@ SplitInfo<Key> * BPTree<Key>::insert_leaf(ipg_pntr leaf, BPEntry<Key> entry) {
         leaf_set_prev(r_page, leaf);
         leaf_set_next(r_page, leaf_get_next(l_page));
         leaf_set_next(l_page, ret->right_pg);
-        leafPageNum++;
-        totalPageNum++;
         numEntries[leaf] = page_capacity/2;
         numEntries[ret->right_pg] = page_capacity - page_capacity/2;
+        if (rightMost == leaf)  rightMost = ret->right_pg;
+
         if (entry.key < ret->divider) {
             leaf_insert_entry(l_page, entry, numEntries[leaf]);
             numEntries[leaf]++;
@@ -104,6 +107,7 @@ RemoveInfo BPTree<Key>::remove_node(ipg_pntr node, Key key, unsigned int nowDept
             }
             if (need_merge) {                   //  Do merge
                 leaf_merge_pages((leaf_page<Key>*)ipm.get_page(left), (leaf_page<Key>*)ipm.get_page(right), numEntries[left], numEntries[right]);
+                if (rightMost == right) rightMost = left;
                 numEntries[left] += numEntries[right];
                 ipm.del_page(right);
                 leafPageNum--;
@@ -181,7 +185,7 @@ RemoveInfo BPTree<Key>::remove_leaf(ipg_pntr leaf, Key key) {
 
 template <class Key>
 BPTree<Key>::BPTree() {
-    rootPage = ipm.new_page();
+    rightMost = leftMost = rootPage = ipm.new_page();
     numEntries[rootPage] = 0;
     leafPageNum = 1;
     totalPageNum = 1;
@@ -218,9 +222,9 @@ BPEntry<Key> BPTree<Key>::read_match(Key key) {
 }
 
 template <class Key>
-std::vector< BPEntry<Key> > BPTree<Key>::read_range(Key key1, Key key2) {
+std::vector< BPEntry<Key> > *BPTree<Key>::read_range(Key key1, Key key2) {
     if (key2 < key1) {
-        return std::vector< BPEntry<Key> >();
+        return new std::vector< BPEntry<Key> >();
     }
     int nowDepth = 0;
     ipg_pntr nowPage = rootPage;
@@ -229,9 +233,9 @@ std::vector< BPEntry<Key> > BPTree<Key>::read_range(Key key1, Key key2) {
         nowDepth++;
     }
     //  Leaf
-    std::vector< BPEntry<Key> > ret;
+    std::vector< BPEntry<Key> > *ret;
     do {
-        nowPage = leaf_scan_entries((leaf_page<Key>*)ipm.get_page(nowPage), key1, key2, numEntries[nowPage], &ret);
+        nowPage = leaf_scan_entries((leaf_page<Key>*)ipm.get_page(nowPage), key1, key2, numEntries[nowPage], ret);
     } while (nowPage != INDEX_PAGE_INVALID);
     return ret;
 }
@@ -253,46 +257,49 @@ unsigned int BPTree<Key>::remove_by_key(Key key) {
     return result.rid;
 }
 
-int main(int argc, char **argv) {
-    BPTree<int> tree;
-    BPEntry<int> entry;
-    printf("%d, %d, %d\n", tree.depth, tree.leafPageNum, tree.totalPageNum);
-    int num = 0;
-    int key1 = 0;
-    int key2 = 0;
-    int del1 = 0;
-    int del2 = 0;
-    if (argc > 1) {
-        if (argc > 2) {
-            if (argc > 3) {
-                if (argc > 4) {
-                    if (argc > 5) {
-                        del2 = strtol(argv[5], NULL, 10);
-                    }
-                    del1 = strtol(argv[4], NULL, 10);
-                }
-                key2 = strtol(argv[3], NULL, 10);
-            }
-            key1 = strtol(argv[2], NULL, 10);
-        }
-        num = strtol(argv[1], NULL, 10);
-    }
-    for (int i=0; i<num; i++) {
-        entry.key = i;
-        entry.value = i+5;
-        tree.insert(entry);
-    }
-    printf("%d, %d, %d\n", tree.depth, tree.leafPageNum, tree.totalPageNum);
-    std::vector< BPEntry<int> > vector = tree.read_range(key1, key2);
-    for (int i=0; i<vector.size(); i++) {
-        printf("(%d, %u)\n", vector[i].key, vector[i].value);
-    }
-    tree.remove_by_key(del1);
-    tree.remove_by_key(del2);
-    printf("%d, %d, %d\n", tree.depth, tree.leafPageNum, tree.totalPageNum);
-    vector = tree.read_range(key1, key2);
-    for (int i=0; i<vector.size(); i++) {
-        printf("(%d, %u)\n", vector[i].key, vector[i].value);
-    }
-    return 0;
-}
+template class BPTree<int>;
+template class BPTree<KeyString>;
+
+// int main(int argc, char **argv) {
+//     BPTree<int> tree;
+//     BPEntry<int> entry;
+//     printf("%d, %d, %d\n", tree.depth, tree.leafPageNum, tree.totalPageNum);
+//     int num = 0;
+//     int key1 = 0;
+//     int key2 = 0;
+//     int del1 = 0;
+//     int del2 = 0;
+//     if (argc > 1) {
+//         if (argc > 2) {
+//             if (argc > 3) {
+//                 if (argc > 4) {
+//                     if (argc > 5) {
+//                         del2 = strtol(argv[5], NULL, 10);
+//                     }
+//                     del1 = strtol(argv[4], NULL, 10);
+//                 }
+//                 key2 = strtol(argv[3], NULL, 10);
+//             }
+//             key1 = strtol(argv[2], NULL, 10);
+//         }
+//         num = strtol(argv[1], NULL, 10);
+//     }
+//     for (int i=0; i<num; i++) {
+//         entry.key = i;
+//         entry.value = i+5;
+//         tree.insert(entry);
+//     }
+//     printf("%d, %d, %d\n", tree.depth, tree.leafPageNum, tree.totalPageNum);
+//     std::vector< BPEntry<int> > vector = tree.read_range(key1, key2);
+//     for (int i=0; i<vector.size(); i++) {
+//         printf("(%d, %u)\n", vector[i].key, vector[i].value);
+//     }
+//     tree.remove_by_key(del1);
+//     tree.remove_by_key(del2);
+//     printf("%d, %d, %d\n", tree.depth, tree.leafPageNum, tree.totalPageNum);
+//     vector = tree.read_range(key1, key2);
+//     for (int i=0; i<vector.size(); i++) {
+//         printf("(%d, %u)\n", vector[i].key, vector[i].value);
+//     }
+//     return 0;
+// }
