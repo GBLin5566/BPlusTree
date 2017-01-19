@@ -63,7 +63,7 @@ std::vector< Record<Key> > *Table<Key>::read_by_key (const Key key1, const Key k
         ret->push_back(record);
     }
     delete entries;
-    assert(1 == 0);
+    return ret;
 }
 
 template <class Key>

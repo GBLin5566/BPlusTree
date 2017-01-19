@@ -260,6 +260,16 @@ unsigned int BPTree<Key>::remove_by_key(Key key) {
 template class BPTree<int>;
 template class BPTree<KeyString>;
 
+template <class Key>
+SplitInfo<Key>::SplitInfo(){}
+
+template struct SplitInfo<int>;
+template struct SplitInfo<KeyString>;
+
+template <class Key>
+BPEntry<Key>::BPEntry(){}
+template struct BPEntry<int>;
+template struct BPEntry<KeyString>;
 // int main(int argc, char **argv) {
 //     BPTree<int> tree;
 //     BPEntry<int> entry;

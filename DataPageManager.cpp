@@ -223,40 +223,40 @@ rid DataPageManager<Key>::insert(Record<Key> r) {
 template class DataPageManager<int>;
 template class DataPageManager<KeyString>;
 
-#ifdef DPM_TEST
-// Testing
-int main() {
-    Record<int> r1(90, 10, "Kappa10");
-    Record<int> r2(90, 20, "Kappa20");
-    Record<int> r3(90, 30, "Kappa30");
-    Record<int> r4(90, 120, "Kappa120");
-    Record<int> r5(90, 1, "Kappa1");
-    Record<int> r6(90, 2, "Kappa2");
-    Record<int> r7(90, 3, "Kappa3");
-    Record<int> r8(90, 4, "Kappa4");
-    DataPageManager<int> test_manager(90);
-    rid insert_r1 = test_manager.insert(r1);
-    rid insert_r2 = test_manager.insert(r2);
-    rid insert_r3 = test_manager.insert(r3);
-    rid insert_r4 = test_manager.insert(r4);
-    rid insert_r5 = test_manager.insert(r5);
-    rid insert_r6 = test_manager.insert(r6);
-    rid insert_r7 = test_manager.insert(r7);
-    rid insert_r8 = test_manager.insert(r8);
-    char* rest1 = test_manager.query(insert_r6);
-    char* rest2 = test_manager.query(insert_r5);
-    test_manager.del(insert_r5);
-    test_manager.printAllPage();
-    char* rest3 = test_manager.query(insert_r5);
-    /*
-    char* tmp = "...";
-    char buffer[1000];
-    //memset(buffer, '\0', sizeof(buffer));
-    memcpy(buffer, tmp, 4);
-    char tmp2[4] = {0};
-    memcpy(tmp2, buffer, 4);
-    std::cout << tmp2 << std::endl;
-    */
-    return 0 ;
-}
-#endif
+// #ifdef DPM_TEST
+// // Testing
+// int main() {
+//     Record<int> r1(90, 10, "Kappa10");
+//     Record<int> r2(90, 20, "Kappa20");
+//     Record<int> r3(90, 30, "Kappa30");
+//     Record<int> r4(90, 120, "Kappa120");
+//     Record<int> r5(90, 1, "Kappa1");
+//     Record<int> r6(90, 2, "Kappa2");
+//     Record<int> r7(90, 3, "Kappa3");
+//     Record<int> r8(90, 4, "Kappa4");
+//     DataPageManager<int> test_manager(90);
+//     rid insert_r1 = test_manager.insert(r1);
+//     rid insert_r2 = test_manager.insert(r2);
+//     rid insert_r3 = test_manager.insert(r3);
+//     rid insert_r4 = test_manager.insert(r4);
+//     rid insert_r5 = test_manager.insert(r5);
+//     rid insert_r6 = test_manager.insert(r6);
+//     rid insert_r7 = test_manager.insert(r7);
+//     rid insert_r8 = test_manager.insert(r8);
+//     char* rest1 = test_manager.query(insert_r6);
+//     char* rest2 = test_manager.query(insert_r5);
+//     test_manager.del(insert_r5);
+//     test_manager.printAllPage();
+//     char* rest3 = test_manager.query(insert_r5);
+//     /*
+//     char* tmp = "...";
+//     char buffer[1000];
+//     //memset(buffer, '\0', sizeof(buffer));
+//     memcpy(buffer, tmp, 4);
+//     char tmp2[4] = {0};
+//     memcpy(tmp2, buffer, 4);
+//     std::cout << tmp2 << std::endl;
+//     */
+//     return 0 ;
+// }
+// #endif

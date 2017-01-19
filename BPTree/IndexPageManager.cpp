@@ -1,5 +1,7 @@
 #include <vector>
 #include <cstdlib>
+#include <cstring>
+#include <cstdio>
 
 #include "IndexPageManager.h"
 

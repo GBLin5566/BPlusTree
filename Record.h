@@ -1,20 +1,19 @@
 #include <cstdint>
+#include <cstring>
 #ifndef RECORD_H
 #define RECORD_H
 
 template <class Key>
 class Record {
     public:
-    Record(int _size, Key _key, char *_rest) {
-        size = _size;
-        key =_key;
-        rest = _rest;
-    }
-    int getSize(){return size;}
-    Key getKey(){return key;}
-    char* getRest(){return rest;}
+    Record(int _size, Key _key, const char * const _rest);
+    Record(const Record<Key> &rec);
+    ~Record();
+    int getSize();
+    Key getKey();
+    char* getRest();
     uint32_t getRid();
-    void setRid(uint32_t _rid) {rid = _rid;}
+    void setRid(uint32_t _rid);
     private:
     int size;
     Key key;
