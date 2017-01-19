@@ -23,6 +23,7 @@ class Table {
     void scan_table();
     void statistics();
     void printDataPages();
+    void printDataPage(int pid);
 
     private:
     unsigned int record_size;

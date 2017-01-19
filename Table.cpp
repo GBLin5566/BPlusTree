@@ -36,7 +36,7 @@ bool Table<Key>::delete_by_key (const Key key) {
     if (rid == INDEX_PAGE_INVALID) {
         return false;
     } else {
-        if (/*dpm->del(*(ridp)&rid)*/false)   return true;
+        if (dpm->del(*((rid_ptr)&rid)))   return true;
         else {
             perror("Key exists in index but missing in data pages\n");
             return false;
@@ -47,20 +47,18 @@ bool Table<Key>::delete_by_key (const Key key) {
 template <class Key>
 Record<Key> Table<Key>::read_by_key (const Key key) {
     BPEntry<Key> entry = index->read_match(key);
-    // rid rid = (rid) entry.value;
-    //  dpm->query(rid);
-    assert(1 == 0);
+    return Record<Key> (record_size, key, dpm->query(*((rid_ptr)&entry.value)));
 }
 
 template <class Key>
 std::vector< Record<Key> > *Table<Key>::read_by_key (const Key key1, const Key key2) {
-    std::vector< Record<Key> > *ret;
+    std::vector< Record<Key> > *ret = new std::vector< Record<Key> >();
     std::vector< BPEntry<Key> > *entries = index->read_range(key1, key2);
     rid rid;
     for (int i=0; i<entries->size(); i++) {
-        // rid = *((rid*)&entries[i].value);
-        //  dpm->query(rid);
+        ret->push_back(Record<Key> (record_size, entries->at(i).key, dpm->query(*((rid_ptr)&entries->at(i).value))));
     }
+    delete entries;
     assert(1 == 0);
 }
 
@@ -79,6 +77,12 @@ void Table<Key>::statistics () {
 template <class Key>
 void Table<Key>::printDataPages () {
     dpm->printAllPage();
+    // assert(1 == 0);
+}
+
+template <class Key>
+void Table<Key>::printDataPage (int pid) {
+    dpm->print(pid);
     // assert(1 == 0);
 }
 
