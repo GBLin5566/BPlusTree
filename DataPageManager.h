@@ -20,7 +20,7 @@ typedef struct {char data[DATA_PAGE_SIZE-sizeof(uint16_t)*2];uint16_t free_space
 //      Key key;
 //      char *rest;
 // };
-typedef struct {uint16_t page_id; uint16_t slot_number;} rid;
+typedef struct {uint16_t page_id; uint16_t slot_number;} rid, *rid_ptr;
 template <class Key>
 class DataPageManager {
     public:
