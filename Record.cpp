@@ -10,8 +10,11 @@ template <class Key>
 Record<Key>::Record(int _size, Key _key, const char * const _rest) {
     size = _size;
     key = _key;
-    rest = (char*) malloc(strlen(_rest)+1);
-    strcpy(rest, _rest);
+    rest = NULL;
+    if (_rest) {
+        rest = (char*) malloc(strlen(_rest)+1);
+        strcpy(rest, _rest);
+    }
 }
 
 template <class Key>
@@ -23,7 +26,7 @@ Record<Key>::Record(const Record<Key> &rec) {
 }
 
 template <class Key>
-Record<Key>::~Record() {free(rest);}
+Record<Key>::~Record() {if (rest)free(rest);}
 
 template <class Key>
 int Record<Key>::getSize(){return size;}

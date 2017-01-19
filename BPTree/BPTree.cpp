@@ -233,7 +233,7 @@ std::vector< BPEntry<Key> > *BPTree<Key>::read_range(Key key1, Key key2) {
         nowDepth++;
     }
     //  Leaf
-    std::vector< BPEntry<Key> > *ret;
+    std::vector< BPEntry<Key> > *ret = new std::vector< BPEntry<Key> >();
     do {
         nowPage = leaf_scan_entries((leaf_page<Key>*)ipm.get_page(nowPage), key1, key2, numEntries[nowPage], ret);
     } while (nowPage != INDEX_PAGE_INVALID);

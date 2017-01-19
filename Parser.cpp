@@ -68,7 +68,7 @@ bool s_err_handler(int length){
 }
 
 bool q_err_handler(int length){
-	if (length!=3||length!=4){
+	if (length!=3&&length!=4){
 		cout<<"Your command q is invalid, It's should have 3 arguments for single value, 4 arguments for range query, including q itself."<<endl;
 		return true;
 	}
@@ -176,7 +176,7 @@ int main(){
 			if (int_tables.find(tokens[1]) != int_tables.end()) { //Command execution for Integer
 				for (int j=0;j<=record_n;j++){
 					int record_size = strlen((tokens[2*j+2]).c_str())+strlen((tokens[2*j+3]).c_str());
-					Record<int> rec(record_size, stoi(tokens[2*j]), tokens[2*j+1].c_str());
+					Record<int> rec(record_size, stoi(tokens[2*j+2]), tokens[2*j+3].c_str());
 					int temp = int_tables.find(tokens[1])->second->insert_record(rec);
 				}
 			}
@@ -228,7 +228,9 @@ int main(){
 				if (string_n==0){ //Command execution for Integer
 					if (int_tables.find(tokens[1]) != int_tables.end()) { 
 						Record<int> query = int_tables.find(tokens[1])->second->read_by_key(stoi(tokens[2]));
-						cout<<"("<<tokens[2]<<", "<<string(query.getRest()).length()<<", "<<query.getRid()<<")"<<endl;
+                        if (query.getRest()) {
+    						cout<<"("<<tokens[2]<<", "<<string(query.getRest()).length()<<", "<<query.getRid()<<")"<<endl;
+                        }
 					}
 					else{
 						cout<<"Cannot find such relation."<<endl;
@@ -238,7 +240,9 @@ int main(){
 				else{ //Command execution for String
 					if (str_tables.find(tokens[1]) != str_tables.end()){ 
 						Record<KeyString> query = str_tables.find(tokens[1])->second->read_by_key(KeyString(tokens[2]));
-						cout<<"("<<tokens[2]<<", "<<string(query.getRest()).length()<<", "<<query.getRid()<<")"<<endl;
+                        if (query.getRest()) {
+	    					cout<<"("<<tokens[2]<<", "<<string(query.getRest()).length()<<", "<<query.getRid()<<")"<<endl;
+                        }
 					}
 					else{
 						cout<<"Cannot find such relation."<<endl;
@@ -253,7 +257,9 @@ int main(){
 					if (int_tables.find(tokens[1]) != int_tables.end()) {
 						vector<Record<int>> *r_query = int_tables.find(tokens[1])->second->read_by_key(stoi(tokens[2]), stoi(tokens[3]));
 						for (int k=0;k<r_query->size(); k++){
-							cout<<r_query->at(k).getRid()<<endl;
+                            if (r_query->at(k).getRest()) {
+							    cout<<r_query->at(k).getRid()<<endl;
+                            }
 						}
 						delete r_query;
 					}
@@ -266,7 +272,9 @@ int main(){
 					if (str_tables.find(tokens[1]) != str_tables.end()){
 						vector<Record<KeyString>> *r_query = str_tables.find(tokens[1])->second->read_by_key(KeyString(tokens[2]), KeyString(tokens[3]));
 						for (int k=0;k<r_query->size(); k++){
-							cout<<r_query->at(k).getRid()<<endl;
+                            if (r_query->at(k).getRest()) {
+    							cout<<r_query->at(k).getRid()<<endl;
+                            }
 						}
 						delete r_query;
 					}
