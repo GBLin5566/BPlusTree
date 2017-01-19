@@ -47,10 +47,9 @@ bool Table<Key>::delete_by_key (const Key key) {
 template <class Key>
 Record<Key> Table<Key>::read_by_key (const Key key) {
     BPEntry<Key> entry = index->read_match(key);
-    rid rid = *((rid_ptr)&entry.value));
-    Record<Key> record(record_size, key, dpm->query(rid));
-    record.setRid(rid);
-    return 
+    Record<Key> record(record_size, key, dpm->query(*((rid_ptr)&entry.value)));
+    record.setRid(entry.value);
+    return record;
 }
 
 template <class Key>
@@ -59,10 +58,9 @@ std::vector< Record<Key> > *Table<Key>::read_by_key (const Key key1, const Key k
     std::vector< BPEntry<Key> > *entries = index->read_range(key1, key2);
     rid rid;
     for (int i=0; i<entries->size(); i++) {
-        rid = *((rid_ptr)&entries->at(i).value))
-        Record<Key> record(record_size, entries->at(i).key, dpm->query(rid);
-        record.setRid(rid);
-        ret->push_back();
+        Record<Key> record(record_size, entries->at(i).key, dpm->query(*((rid_ptr)&entries->at(i).value)));
+        record.setRid(entries->at(i).value);
+        ret->push_back(record);
     }
     delete entries;
     assert(1 == 0);

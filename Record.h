@@ -1,5 +1,4 @@
 #include <cstdint>
-#include "DataPageManager.h"
 #ifndef RECORD_H
 #define RECORD_H
 
@@ -15,7 +14,7 @@ class Record {
     Key getKey(){return key;}
     char* getRest(){return rest;}
     uint32_t getRid();
-    void setRid(rid _rid) {rid = *((uint32_t*)&rid);}
+    void setRid(uint32_t _rid) {rid = _rid;}
     private:
     int size;
     Key key;
