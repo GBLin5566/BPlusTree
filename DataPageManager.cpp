@@ -9,7 +9,7 @@
 #endif
 
 #ifndef DPM_TEST
-#define DPM_TEST
+//#define DPM_TEST
 #endif
 
 typedef struct {uint16_t offset; uint16_t reclen;} slot;
@@ -47,7 +47,9 @@ bool DataPageManager<Key>::del(const rid& id) {
         uint16_t deleted_msg = UINT16_MAX;
         data_page* target_page = &this->page_table[page_id];
         uint16_t offset_for_slot = DATA_PAGE_SIZE - 1 - 2 * sizeof(uint16_t);
+#ifdef DPM_DETAIL
         std::cout << "[DBM] Deleting page id " << page_id << ", slot_number " << slot_number << std::endl;
+#endif
         memcpy(target_page->data + (DATA_PAGE_SIZE - 1 - 2*(sizeof(uint16_t))) - (slot_number + 1) * (sizeof(id.page_id) + sizeof(id.slot_number)), 
                 &deleted_msg, sizeof(deleted_msg));
         return true;
@@ -64,7 +66,9 @@ char* DataPageManager<Key>::query(const rid& id) {
 
     data_page* target_page = &this->page_table[page_id];
     uint16_t offset_for_slot = DATA_PAGE_SIZE - 1 - 2 * sizeof(uint16_t);
+#ifdef DPM_DETAIL
     std::cout << "[DBM] Querying page id " << page_id << ", slot_number " << slot_number << std::endl;
+#endif
     slot target_slot;
     memcpy(&target_slot.offset, target_page->data + (DATA_PAGE_SIZE - 1 - 2*(sizeof(uint16_t))) - (slot_number + 1) * (sizeof(id.page_id) + sizeof(id.slot_number)), sizeof(target_slot.offset));
     memcpy(&target_slot.reclen, target_page->data + (DATA_PAGE_SIZE - 1 - 2*(sizeof(uint16_t))) - (slot_number + 1) * (sizeof(id.page_id) + sizeof(id.slot_number)) + sizeof(target_slot.offset), sizeof(target_slot.reclen));
@@ -74,7 +78,9 @@ char* DataPageManager<Key>::query(const rid& id) {
     }
     char* return_rest = new char [target_slot.reclen];
     memcpy(return_rest, target_page->data + target_slot.offset, target_slot.reclen);
+#ifdef DPM_DETAIL
     std::cout << "[DBM] Query result, rest = " << return_rest << std::endl;
+#endif
     return return_rest;
 }
 
@@ -137,7 +143,9 @@ rid DataPageManager<Key>::insert(Record<Key> r) {
     std::string t(r.getRest());
     assert(t.length() < this->getRecordLen());
     try {
+#ifdef DPM_DETAIL
         std::cout << "[DPM] Insert a record, size(" << r.getSize() << "), key(" << r.getKey() << "), rest(" << r.getRest() << ").\n" ; 
+#endif
         // Have enough space
         if (this->enoughFreeSpace()) {
 #ifdef DPM_DETAIL
