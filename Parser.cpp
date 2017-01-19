@@ -103,11 +103,16 @@ bool is_number(const string& s)
 }
 
 int main(){
+	//Declare map for storing tables
+	unordered_map <string, Table<int>*>  int_tables;
+	unordered_map <string, Table<KeyString>*>  str_tables;
+
 	while (1){
 		usage_msg();
 
 		string str;
 		getline(cin, str);
+		if (str.size()==0) continue;
 
 		vector<int> delimiter;
 		for (int i=0; i<str.size(); i++)
@@ -147,10 +152,6 @@ int main(){
 				i++;
 			}
 		}
-
-		//Declare map for storing tables
-		unordered_map <string, Table<int>*>  int_tables;
-		unordered_map <string, Table<KeyString>*>  str_tables;
 		
 		//Classify into different commands
 		if (tokens[0]=="R"){ //Build table
@@ -173,15 +174,16 @@ int main(){
 			if (i_err_handler(tokens.size(), record_n, delimiter)) //size error
 				continue;
 			if (int_tables.find(tokens[1]) != int_tables.end()) { //Command execution for Integer
-				for (int j=1;j<=(string_n/2);j++){
-					int record_size = strlen((tokens[2*j]).c_str())+strlen((tokens[2*j+1]).c_str());
-					int temp = int_tables.find(tokens[1])->second->insert_record(Record<int> (record_size, stoi(tokens[2*j]), tokens[2*j+1].c_str()));
+				for (int j=0;j<=record_n;j++){
+					int record_size = strlen((tokens[2*j+2]).c_str())+strlen((tokens[2*j+3]).c_str());
+					Record<int> rec(record_size, stoi(tokens[2*j]), tokens[2*j+1].c_str());
+					int temp = int_tables.find(tokens[1])->second->insert_record(rec);
 				}
 			}
 			else if (str_tables.find(tokens[1]) != str_tables.end()){ //Command execution for String
-				for (int j=1;j<=(string_n/2);j++){
-					int record_size = strlen((tokens[2*j]).c_str())+strlen((tokens[2*j+1]).c_str());
-					int temp = str_tables.find(tokens[1])->second->insert_record(Record<KeyString> (record_size, KeyString(tokens[2*j]), tokens[2*j+1])); //10 char key?
+				for (int j=0;j<=record_n;j++){
+					int record_size = strlen((tokens[2*j+2]).c_str())+strlen((tokens[2*j+3]).c_str());
+					int temp = str_tables.find(tokens[1])->second->insert_record(Record<KeyString> (record_size, KeyString(tokens[2*j+2]), tokens[2*j+3].c_str())); //10 char key?
 				}
 			}
 			else{
@@ -226,6 +228,7 @@ int main(){
 				if (string_n==0){ //Command execution for Integer
 					if (int_tables.find(tokens[1]) != int_tables.end()) { 
 						Record<int> query = int_tables.find(tokens[1])->second->read_by_key(stoi(tokens[2]));
+						cout<<"("<<tokens[2]<<", "<<string(query.getRest()).length()<<", "<<query.getRid()<<")"<<endl;
 					}
 					else{
 						cout<<"Cannot find such relation."<<endl;
@@ -235,6 +238,7 @@ int main(){
 				else{ //Command execution for String
 					if (str_tables.find(tokens[1]) != str_tables.end()){ 
 						Record<KeyString> query = str_tables.find(tokens[1])->second->read_by_key(KeyString(tokens[2]));
+						cout<<"("<<tokens[2]<<", "<<string(query.getRest()).length()<<", "<<query.getRid()<<")"<<endl;
 					}
 					else{
 						cout<<"Cannot find such relation."<<endl;
@@ -248,6 +252,10 @@ int main(){
 				if (string_n==0){ //Command execution for Integer
 					if (int_tables.find(tokens[1]) != int_tables.end()) {
 						vector<Record<int>> *r_query = int_tables.find(tokens[1])->second->read_by_key(stoi(tokens[2]), stoi(tokens[3]));
+						for (int k=0;k<r_query->size(); k++){
+							cout<<r_query->at(k).getRid()<<endl;
+						}
+						delete r_query;
 					}
 					else{
 						cout<<"Cannot find such relation."<<endl;
@@ -257,6 +265,10 @@ int main(){
 				else{ //Command execution for String
 					if (str_tables.find(tokens[1]) != str_tables.end()){
 						vector<Record<KeyString>> *r_query = str_tables.find(tokens[1])->second->read_by_key(KeyString(tokens[2]), KeyString(tokens[3]));
+						for (int k=0;k<r_query->size(); k++){
+							cout<<r_query->at(k).getRid()<<endl;
+						}
+						delete r_query;
 					}
 					else{
 						cout<<"Cannot find such relation."<<endl;
