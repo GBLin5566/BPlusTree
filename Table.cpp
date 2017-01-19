@@ -61,7 +61,6 @@ template <class Key>
 std::vector< Record<Key> > *Table<Key>::read_by_key (const Key key1, const Key key2) {
     std::vector< Record<Key> > *ret = new std::vector< Record<Key> >();
     std::vector< BPEntry<Key> > *entries = index->read_range(key1, key2);
-    printf("%lu\n", entries->size());
     char *rest;
     for (int i=0; i<entries->size(); i++) {
         rest = NULL;
