@@ -3,8 +3,10 @@
 #include <vector>
 #include <algorithm>
 #include <iterator>
-#include "TableIndex.h"
+#include "Table.h"
 #include <unordered_map>
+#include "Record.h"
+#include "KeyString.h"
 
 using namespace std;
 
@@ -92,6 +94,14 @@ bool p_err_handler(int length){
 		return false;
 }
 
+bool is_number(const string& s)
+{
+    string::const_iterator it = s.begin();
+    while (it != s.end() && isdigit(*it)) 
+		++it;
+    return !s.empty() && it == s.end();
+}
+
 int main(){
 	while (1){
 		usage_msg();
@@ -139,35 +149,44 @@ int main(){
 		}
 
 		//Declare map for storing tables
-		unordered_map <string, TableIndex<int>*>  int_tables;
-		unordered_map <string, TableIndex<KeyString>*>  str_tables;
+		unordered_map <string, Table<int>*>  int_tables;
+		unordered_map <string, Table<KeyString>*>  str_tables;
 		
 		//Classify into different commands
 		if (tokens[0]=="R"){ //Build table
 			if (r_err_handler(tokens.size())) //size error
 				continue;
-			if (tokens[2]=="Integer"){ //Command execution for Integer
-				TableIndex<int>* t_i = new TableIndex<int>((unsigned int)stoi(tokens[3]), (tokens[1]).c_str());
+			if (tokens[2]=="Integer"||tokens[2]=="integer"){ //Command execution for Integer
+				Table<int>* t_i = new Table<int>((unsigned int)stoi(tokens[3]), (tokens[1]).c_str());
 				int_tables[tokens[1]] = t_i;
 			}
-			else if (tokens[2]=="String"){ //Command execution for String
-				TableIndex<KeyString>* t_s = new TableIndex<KeyString>((unsigned int)stoi(tokens[3]), (tokens[1]).c_str());
+			else if (tokens[2]=="String"||tokens[2]=="string"){ //Command execution for String
+				Table<KeyString>* t_s = new Table<KeyString>((unsigned int)stoi(tokens[3]), (tokens[1]).c_str());
 				str_tables[tokens[1]] = t_s;
 			}
-			else 
+			else {
+				cout<<"Cannot find such relation."<<endl;
 				continue;
+			}
 		}
-		else if (tokens[0]=="I"){ //Insert record to chosen table
+		else if (tokens[0]=="I"){ //Insert record to chosen table //Multiple
 			if (i_err_handler(tokens.size(), record_n, delimiter)) //size error
 				continue;
 			if (int_tables.find(tokens[1]) != int_tables.end()) { //Command execution for Integer
-				int temp = int_tables.find(tokens[1])->second->insert_record(Record<int>(stoi(tokens[2]), tokens[3])); //
+				for (int j=1;j<=(string_n/2);j++){
+					int record_size = strlen((tokens[2*j]).c_str())+strlen((tokens[2*j+1]).c_str());
+					int temp = int_tables.find(tokens[1])->second->insert_record(Record<int> (record_size, stoi(tokens[2*j]), tokens[2*j+1].c_str()));
+				}
 			}
 			else if (str_tables.find(tokens[1]) != str_tables.end()){ //Command execution for String
-				int temp = str_tables.find(tokens[1])->second->insert_record(Record<KeyString>(tokens[2], tokens[3])); //10 char key?
+				for (int j=1;j<=(string_n/2);j++){
+					int record_size = strlen((tokens[2*j]).c_str())+strlen((tokens[2*j+1]).c_str());
+					int temp = str_tables.find(tokens[1])->second->insert_record(Record<KeyString> (record_size, KeyString(tokens[2*j]), tokens[2*j+1])); //10 char key?
+				}
 			}
 			else{
-
+				cout<<"Cannot find such relation."<<endl;
+				continue;
 			}
 		}
 		else if (tokens[0]=="D"){ //Delete record from chosen table
@@ -178,11 +197,12 @@ int main(){
 					continue;
 			}
 			else if (str_tables.find(tokens[1]) != str_tables.end()){ //Command execution for String
-				if (str_tables.find(tokens[1])->second->delete_by_key(tokens[2]))
+				if (str_tables.find(tokens[1])->second->delete_by_key(KeyString(tokens[2])))
 					continue;
 			}
 			else{
-
+				cout<<"Cannot find such relation."<<endl;
+				continue;
 			}
 		}
 		else if (tokens[0]=="Scan"){ //Print # of leaf pages, # of total index pages
@@ -195,62 +215,88 @@ int main(){
 				str_tables.find(tokens[1])->second->scan_table();
 			}
 			else{
-
+				cout<<"Cannot find such relation."<<endl;
+				continue;
 			}
 		}
-		else if (tokens[0]=="q"){ //Single value quert & range query
+		else if (tokens[0]=="q"){ //Single value quert & range query //Output
 			if (q_err_handler(tokens.size())) //size error
 				continue;
 			if (tokens.size()==3){ //Single value
 				if (string_n==0){ //Command execution for Integer
 					if (int_tables.find(tokens[1]) != int_tables.end()) { 
-						Record<int> query = int_tables.find(tokens[1])->second->read_by_key(tokens[2]);
+						Record<int> query = int_tables.find(tokens[1])->second->read_by_key(stoi(tokens[2]));
+					}
+					else{
+						cout<<"Cannot find such relation."<<endl;
+						continue;
 					}
 				}
 				else{ //Command execution for String
 					if (str_tables.find(tokens[1]) != str_tables.end()){ 
-						Record<KeyString> query = str_tables.find(tokens[1])->second->read_by_key(tokens[2]);
+						Record<KeyString> query = str_tables.find(tokens[1])->second->read_by_key(KeyString(tokens[2]));
+					}
+					else{
+						cout<<"Cannot find such relation."<<endl;
+						continue;
 					}
 				}
 			}
 			else if (tokens.size()==4){ //Range
-				if (tokens[2]>tokens[3]) //Check type & comparison
-					continue;
+				/*if (tokens[2]>tokens[3]) //Check type & comparison
+					continue;*/
 				if (string_n==0){ //Command execution for Integer
 					if (int_tables.find(tokens[1]) != int_tables.end()) {
-						vector<Record<int>> r_query = int_tables.find(tokens[1])->second->read_by_key(tokens[2], tokens[3]);
+						vector<Record<int>> *r_query = int_tables.find(tokens[1])->second->read_by_key(stoi(tokens[2]), stoi(tokens[3]));
+					}
+					else{
+						cout<<"Cannot find such relation."<<endl;
+						continue;
 					}
 				}
 				else{ //Command execution for String
 					if (str_tables.find(tokens[1]) != str_tables.end()){
-						vector<Record<KeyString>> r_query = str_tables.find(tokens[1])->second->read_by_key(tokens[2], tokens[3]);
+						vector<Record<KeyString>> *r_query = str_tables.find(tokens[1])->second->read_by_key(KeyString(tokens[2]), KeyString(tokens[3]));
+					}
+					else{
+						cout<<"Cannot find such relation."<<endl;
+						continue;
 					}
 				}
 			}
 		}
-		else if (tokens[0]=="c"){
+		else if (tokens[0]=="c"){ //Output statistics
 			if (c_err_handler(tokens.size())) //size error
 				continue;
-			if (int_tables.find(tokens[1]) != int_tables.end()) { //Command execution for String
-				/*cout<<int_tables.find(tokens[1])->second->numIndexPages()<<" index pages, and "
-					<<int_tables.find(tokens[1])->second->numLeafPages()<<" slotted data pages."<<endl;*/
+			if (int_tables.find(tokens[1]) != int_tables.end()) { //Command execution for int
+				int_tables.find(tokens[1])->second->statistics();
 			}
 			else if (str_tables.find(tokens[1]) != str_tables.end()){ //Command execution for String
-				/*cout<<str_tables.find(tokens[1])->second->numIndexPages()<<" index pages, and "
-					<<str_tables.find(tokens[1])->second->numLeafPages()<<" slotted data pages."<<endl;*/
+				str_tables.find(tokens[1])->second->statistics();
 			}
 			else{
-
+				cout<<"Cannot find such relation."<<endl;
+				continue;
 			}
 		}
-		else if (tokens[0]=="p"){
+		else if (tokens[0]=="p"){ //Print data pages
 			if (p_err_handler(tokens.size())) //size error
 				continue;
-
+			if (int_tables.find(tokens[1]) != int_tables.end()) { //Command execution for int
+				int_tables.find(tokens[1])->second->printDataPage(stoi(tokens[2]));
+			}
+			else if (str_tables.find(tokens[1]) != str_tables.end()){ //Command execution for String
+				str_tables.find(tokens[1])->second->printDataPage(stoi(tokens[2]));
+			}
+			else{
+				cout<<"Cannot find such relation."<<endl;
+				continue;
+			}
 		}
 		else
 			cout<<"Sorry! We do not support this kind of command!"<<endl;
-		cout<<endl<<"STFU!Motherfucker!";
+		//cout<<endl<<"STFU!Motherfucker!";
+		cout<<endl<<"Command complete!"<<endl;
 		
 	}
 	return 0;
